@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Clear loading message
       activitiesList.innerHTML = "";
       // Reset dropdown, keeping the placeholder option
+      const selectedActivity = activitySelect.value;
       activitySelect.length = 1;
 
       // Populate activities list
@@ -56,6 +57,10 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = name;
         activitySelect.appendChild(option);
       });
+
+      if (selectedActivity && activities[selectedActivity]) {
+        activitySelect.value = selectedActivity;
+      }
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
