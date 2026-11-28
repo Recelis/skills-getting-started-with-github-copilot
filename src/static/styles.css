@@ -126,6 +126,7 @@ section h3 {
   flex-shrink: 0;
   border: none;
   background: transparent;
+  color: #9b1c1c;
   cursor: pointer;
   font-size: 14px;
   padding: 2px 4px;
