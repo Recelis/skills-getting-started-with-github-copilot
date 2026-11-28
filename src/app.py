@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import os
+import threading
 from pathlib import Path
 
 app = FastAPI(title="Mergington High School API",
@@ -16,6 +17,8 @@ app = FastAPI(title="Mergington High School API",
 
 # Mount the static files directory
 current_dir = Path(__file__).parent
+activities_lock = threading.Lock()
+
 app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
           "static")), name="static")
 
@@ -99,16 +102,17 @@ def signup_for_activity(activity_name: str, email: str):
     activity = activities[activity_name]
 
     
-    # Validate if the student is already signed up
-    if email in activity["participants"]:
-        raise HTTPException(status_code=400, detail="Student already signed up")
+    with activities_lock:
+        # Validate if the student is already signed up
+        if email in activity["participants"]:
+            raise HTTPException(status_code=400, detail="Student already signed up")
 
-    # Validate if the activity has reached max participants
-    if len(activity["participants"]) >= activity["max_participants"]:
-        raise HTTPException(status_code=400, detail="Activity is full")
-    
-    # Add student
-    activity["participants"].append(email)
+        # Validate if the activity has reached max participants
+        if len(activity["participants"]) >= activity["max_participants"]:
+            raise HTTPException(status_code=400, detail="Activity is full")
+
+        # Add student
+        activity["participants"].append(email)
     return {"message": f"Signed up {email} for {activity_name}"}
 
 
@@ -120,8 +124,9 @@ def unregister_from_activity(activity_name: str, email: str):
 
     activity = activities[activity_name]
 
-    if email not in activity["participants"]:
-        raise HTTPException(status_code=404, detail="Student is not signed up for this activity")
+    with activities_lock:
+        if email not in activity["participants"]:
+            raise HTTPException(status_code=404, detail="Student is not signed up for this activity")
 
-    activity["participants"].remove(email)
+        activity["participants"].remove(email)
     return {"message": f"Unregistered {email} from {activity_name}"}
